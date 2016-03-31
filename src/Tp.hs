@@ -54,6 +54,7 @@ extraerFeatures = undefined
 
 distEuclideana :: Medida
 distEuclideana = undefined
+--distEuclideana = sqrt $ sum $ map (**) $ zipWith (+)
 
 distCoseno :: Medida
 distCoseno = undefined
