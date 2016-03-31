@@ -20,25 +20,36 @@ mean :: [Float] -> Float
 mean xs = realToFrac (sum xs) / genericLength xs
 
 split :: Eq a => a -> [a] -> [[a]]
-split = undefined
+split e = foldr (\x rec -> if x == e then []:rec else (x:(head rec)):(tail rec)) [[]] 
 
 longitudPromedioPalabras :: Extractor
-longitudPromedioPalabras = undefined
+longitudPromedioPalabras txt = let palabras = filter (/= []) (split ' ' txt)
+                                   longitudes = map length palabras
+                                   cantidad = length palabras
+                               in  fromIntegral (sum longitudes) / fromIntegral cantidad
 
 cuentas :: Eq a => [a] -> [(Int, a)]
-cuentas = undefined
+cuentas lst = map (\x -> (length (filter (== x) lst), x)) (nub lst)
 
 repeticionesPromedio :: Extractor
-repeticionesPromedio = undefined
+repeticionesPromedio txt = let frecuenciaPalabras = map (\x -> fst x) (cuentas (split ' ' txt))
+                               cantidad = length frecuenciaPalabras
+                           in  fromIntegral (sum frecuenciaPalabras) / fromIntegral cantidad
+
+tokens :: [Char]
+tokens = "_,)(*;-=>/.{}\"&:+#[]<|%!\'@?~^$` abcdefghijklmnopqrstuvwxyz0123456789"
 
 frecuenciaTokens :: [Extractor]
-frecuenciaTokens = let tokens = "_,)(*;-=>/.{}\"&:+#[]<|%!\'@?~^$` abcdefghijklmnopqrstuvwxyz0123456789" in
-  undefined
+frecuenciaTokens = map frec tokens
+                   where frec t txt = let tokenFrec = filter ((== t) . snd) (cuentas txt)
+                                      in if tokenFrec == [] 
+                                         then 0
+                                         else fromIntegral (fst (head tokenFrec)) / fromIntegral (length txt)
 
 normalizarExtractor :: [Texto] -> Extractor -> Extractor
 normalizarExtractor = undefined
 
-extraerFeatures :: [Extractor] -> [Texto]  -> Datos
+extraerFeatures :: [Extractor] -> [Texto] -> Datos
 extraerFeatures = undefined
 
 distEuclideana :: Medida
