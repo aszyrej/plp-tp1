@@ -47,7 +47,7 @@ frecuenciaTokens = map frec tokens
                                          else fromIntegral (fst (head tokenFrec)) / fromIntegral (length txt)
 
 normalizarExtractor :: [Texto] -> Extractor -> Extractor
-normalizarExtractor = undefined
+normalizarExtractor txt e = (\t -> (e t) / maximum (map (abs . e) txt))
 
 extraerFeatures :: [Extractor] -> [Texto] -> Datos
 extraerFeatures = undefined
