@@ -53,8 +53,7 @@ extraerFeatures :: [Extractor] -> [Texto] -> Datos
 extraerFeatures = undefined
 
 distEuclideana :: Medida
-distEuclideana = undefined
---distEuclideana = sqrt $ sum $ map (**) $ zipWith (+)
+distEuclideana v1 v2 = sqrt $ sum $ map (**2) $ zipWith (-) v1 v2
 
 distCoseno :: Medida
 distCoseno = undefined
