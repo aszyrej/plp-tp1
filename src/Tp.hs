@@ -89,7 +89,11 @@ moda l = fst $ maximumBy (cmp) elemCounts where
 cmp a b = compare (snd a) (snd b)
 
 accuracy :: [Etiqueta] -> [Etiqueta] -> Float
-accuracy = undefined
+accuracy etiquetas predicciones = (cantAciertos etiquetas predicciones) / total
+  where total = fromIntegral (length etiquetas) :: Float
+
+cantAciertos etiquetas predicciones = sum $ map boolToInt $ zipWith (==) etiquetas predicciones
+  where boolToInt = (\b -> if b==True then 1 else 0)
 
 separarDatos :: Datos -> [Etiqueta] -> Int -> Int -> (Datos, Datos, [Etiqueta], [Etiqueta])
 separarDatos = undefined
