@@ -24,17 +24,15 @@ split e = foldr (\x rec -> if x == e then []:rec else (x:(head rec)):(tail rec))
 
 longitudPromedioPalabras :: Extractor
 longitudPromedioPalabras txt = let palabras = filter (/= []) (split ' ' txt)
-                                   longitudes = map length palabras
-                                   cantidad = length palabras
-                               in  fromIntegral (sum longitudes) / fromIntegral cantidad
+                                   longitudes = map genericLength palabras
+                               in  mean longitudes
 
 cuentas :: Eq a => [a] -> [(Int, a)]
-cuentas lst = map (\x -> (length (filter (== x) lst), x)) (nub lst)
+cuentas lst = map (\x -> (length $ filter (== x) lst, x)) (nub lst)
 
 repeticionesPromedio :: Extractor
-repeticionesPromedio txt = let frecuenciaPalabras = map (\x -> fst x) (cuentas (split ' ' txt))
-                               cantidad = length frecuenciaPalabras
-                           in  fromIntegral (sum frecuenciaPalabras) / fromIntegral cantidad
+repeticionesPromedio txt = let frecuenciaPalabras = map (\x -> fromIntegral (fst x)) (cuentas (split ' ' txt))
+                           in  mean frecuenciaPalabras
 
 tokens :: [Char]
 tokens = "_,)(*;-=>/.{}\"&:+#[]<|%!\'@?~^$` abcdefghijklmnopqrstuvwxyz0123456789"
