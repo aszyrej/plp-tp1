@@ -1,9 +1,5 @@
 module Tp where
 
-
-
-
-
 import Data.List
 
 type Texto = String
@@ -37,8 +33,6 @@ longitudPromedioPalabrasSeparadas :: [Texto]->Float
 longitudPromedioPalabrasSeparadas [] = 0.0
 longitudPromedioPalabrasSeparadas plbrs =   let longitudes = map genericLength plbrs
                                             in  mean longitudes
-
-
 
 cuentas :: Eq a => [a] -> [(Int, a)]
 cuentas lst = map (\x -> (length $ filter (== x) lst, x)) (nub lst)
@@ -80,7 +74,19 @@ norma :: Instancia -> Float
 norma v1 = sqrt $ prodVectorial v1 v1
 
 knn :: Int -> Datos-> [Etiqueta] -> Medida -> Modelo
-knn = undefined
+knn k datos etiquetas distancia = 
+    \instancia -> 
+      moda $  
+        map fst $ 
+          take k $ 
+            sortBy cmp $ 
+              zip etiquetas $ 
+                map (distancia instancia) datos
+
+moda l = fst $ maximumBy (cmp) elemCounts where
+    elemCounts = nub [(element, count) | element <- l, let count = length (filter (==element) l)]
+
+cmp a b = compare (snd a) (snd b)
 
 accuracy :: [Etiqueta] -> [Etiqueta] -> Float
 accuracy = undefined
