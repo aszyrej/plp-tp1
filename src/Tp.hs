@@ -48,7 +48,8 @@ normalizarExtractor :: [Texto] -> Extractor -> Extractor
 normalizarExtractor txt e = (\t -> (e t) / maximum (map (abs . e) txt))
 
 extraerFeatures :: [Extractor] -> [Texto] -> Datos
-extraerFeatures = undefined
+extraerFeatures es ts = let esNorm = map (normalizarExtractor ts) es
+                        in foldr (\t trec -> (foldr (\e erec -> (e t) : erec) [] esNorm) : trec) [] ts --[[ e t | e <- esNorm] | t <- ts]
 
 distEuclideana :: Medida
 distEuclideana v1 v2 = sqrt $ sum $ map (**2) $ zipWith (-) v1 v2
