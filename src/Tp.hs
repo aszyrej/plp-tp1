@@ -56,9 +56,15 @@ distEuclideana :: Medida
 distEuclideana v1 v2 = sqrt $ sum $ map (**2) $ zipWith (-) v1 v2
 
 distCoseno :: Medida
-distCoseno = undefined
+distCoseno v1 v2  = (prodVectorial v1 v2) / ((norma v1) * (norma v2))
 
-knn :: Int -> Datos -> [Etiqueta] -> Medida -> Modelo
+prodVectorial :: Instancia -> Instancia -> Float
+prodVectorial v1 v2 = sum $ zipWith (*) v1 v2
+
+norma :: Instancia -> Float
+norma v1 = sqrt $ prodVectorial v1 v1
+
+knn :: Int -> Datos-> [Etiqueta] -> Medida -> Modelo
 knn = undefined
 
 accuracy :: [Etiqueta] -> [Etiqueta] -> Float
