@@ -1,5 +1,9 @@
 module Tp where
 
+
+
+
+
 import Data.List
 
 type Texto = String
@@ -22,18 +26,30 @@ mean xs = realToFrac (sum xs) / genericLength xs
 split :: Eq a => a -> [a] -> [[a]]
 split e = foldr (\x rec -> if x == e then []:rec else (x:(head rec)):(tail rec)) [[]] 
 
+-- Auxiliar.
+palabras txt = filter (/= []) (split ' ' txt)
+
+-- Separamos el caso 0.0, si no, da NaN.
 longitudPromedioPalabras :: Extractor
-longitudPromedioPalabras txt = let palabras = filter (/= []) (split ' ' txt)
-                                   longitudes = map genericLength palabras
-                               in  mean longitudes
+longitudPromedioPalabras txt = longitudPromedioPalabrasSeparadas (palabras txt)
+
+longitudPromedioPalabrasSeparadas :: [Texto]->Float
+longitudPromedioPalabrasSeparadas [] = 0.0
+longitudPromedioPalabrasSeparadas plbrs =   let longitudes = map genericLength plbrs
+                                            in  mean longitudes
+
+
 
 cuentas :: Eq a => [a] -> [(Int, a)]
 cuentas lst = map (\x -> (length $ filter (== x) lst, x)) (nub lst)
 
+-- Mismo que longPromedio, separamos el caso 0.0, si no, da NaN.
 repeticionesPromedio :: Extractor
-repeticionesPromedio txt = let frecuenciaPalabras = map (\x -> fromIntegral (fst x)) (cuentas (split ' ' txt))
-                           in  mean frecuenciaPalabras
+repeticionesPromedio txt = repeticionesPromedioPalabrasSeparadas (palabras txt)
 
+repeticionesPromedioPalabrasSeparadas [] = 0.0
+repeticionesPromedioPalabrasSeparadas plbrs =   let frecuenciaPalabras = map (\x -> fromIntegral $ fst x) (cuentas plbrs)
+                                                in mean frecuenciaPalabras
 tokens :: [Char]
 tokens = "_,)(*;-=>/.{}\"&:+#[]<|%!\'@?~^$` abcdefghijklmnopqrstuvwxyz0123456789"
 
