@@ -92,11 +92,32 @@ accuracy :: [Etiqueta] -> [Etiqueta] -> Float
 accuracy etiquetas predicciones = (cantAciertos etiquetas predicciones) / total
   where total = fromIntegral (length etiquetas) :: Float
 
+cantAciertos :: [Etiqueta] -> [Etiqueta] -> Float
 cantAciertos etiquetas predicciones = sum $ map boolToInt $ zipWith (==) etiquetas predicciones
   where boolToInt = (\b -> if b==True then 1 else 0)
 
 separarDatos :: Datos -> [Etiqueta] -> Int -> Int -> (Datos, Datos, [Etiqueta], [Etiqueta])
-separarDatos = undefined
+separarDatos datos etiquetas cantParticiones particion = 
+  (datos_train, datos_particion, etiquetas_train, etiquetas_particion)
+  where 
+        cantElemPorPart = div (length datos) cantParticiones
+        p = particion-1
+        n = cantParticiones*cantElemPorPart
+        d = take n datos
+        e = take n etiquetas
+        
+        datos_train = withoutSublist p cantElemPorPart d
+        datos_particion = sublist p cantElemPorPart d
+        etiquetas_train = withoutSublist p cantElemPorPart e
+        etiquetas_particion = sublist p cantElemPorPart e
+
+
+withoutSublist i len l = (take n l) ++ (drop m l)
+  where n = i*len :: Int
+        m = (i+1)*len :: Int
+
+sublist i len list = take len $ drop n list   
+  where n = i*len :: Int
 
 nFoldCrossValidation :: Int -> Datos -> [Etiqueta] -> Float
 nFoldCrossValidation = undefined
