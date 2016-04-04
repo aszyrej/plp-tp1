@@ -39,7 +39,7 @@ main = do
     shuffled <- shuffle (zip x y)
     let (x_shuffled, y_shuffled) = unzip shuffled
     print $ tryClassifier x_shuffled y_shuffled
-    print $ tryClassifierUnk x_shuffled y_shuffled contentsUnk
+    --print $ tryClassifierUnk x_shuffled y_shuffled contentsUnk
     let length_class_1 = genericLength (filter (\x -> x == (head y)) y)
     let random_acc = length_class_1 / (genericLength y)
     print $ "random value: " ++ show random_acc

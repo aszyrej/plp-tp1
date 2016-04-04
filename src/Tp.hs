@@ -61,8 +61,8 @@ extraerFeatures :: [Extractor] -> [Texto] -> Datos
 extraerFeatures es ts = let esNorm = map (normalizarExtractor ts) es
                         in [[ e t | e <- esNorm] | t <- ts]
 
-distEuclideana :: Medida
-distEuclideana v1 v2 = sqrt $ sum $ map (**2) $ zipWith (-) v1 v2
+distEuclidiana :: Medida
+distEuclidiana v1 v2 = sqrt $ sum $ map (**2) $ zipWith (-) v1 v2
 
 distCoseno :: Medida
 distCoseno v1 v2  = (prodVectorial v1 v2) / ((norma v1) * (norma v2))
@@ -89,13 +89,45 @@ moda l = fst $ maximumBy (cmp) elemCounts where
 cmp a b = compare (snd a) (snd b)
 
 accuracy :: [Etiqueta] -> [Etiqueta] -> Float
-accuracy etiquetas predicciones = (cantAciertos etiquetas predicciones) / total
-  where total = fromIntegral (length etiquetas) :: Float
+accuracy etiquetas predicciones = mean $ zipWith (\a b -> if a == b then 1.0 else 0.0) etiquetas predicciones
 
-cantAciertos :: [Etiqueta] -> [Etiqueta] -> Float
-cantAciertos etiquetas predicciones = sum $ map boolToInt $ zipWith (==) etiquetas predicciones
-  where boolToInt = (\b -> if b==True then 1 else 0)
+-- Precond: n > 0 && (len xs) es mult de n.
+particionesDeLargoN :: Int->[a]->[[a]]
+particionesDeLargoN _ [] = []
+particionesDeLargoN n xs = fst $    foldr (\x res -> 
+                                    if (snd res) < n 
+                                    then (agregarAlPrimero x (fst res),(snd res)+1)
+                                    else ([x]:(fst res),1)) 
+                                    ([[]], 0)
+                                    xs
 
+-- Precond: Lista de listas (xss) no vacía.
+agregarAlPrimero :: a->[[a]]->[[a]]
+agregarAlPrimero x xss = (x : (head xss)) : (tail xss)
+
+-- Auxiliar: Lista de lisas -> se concatenan todas en una única lista
+aplanar = foldr (++) []
+
+-- Auxiliar para obtener una tupla con el elemento N por un lado y el resto por el otro.
+extraerElementoN :: Int -> [a] -> (a, [a])
+extraerElementoN n xs = let ultimos = drop n xs
+                        in (head ultimos, (take n xs) ++ (tail ultimos))
+
+separarDatos :: Datos -> [Etiqueta] -> Int -> Int -> (Datos, Datos, [Etiqueta], [Etiqueta])
+separarDatos datos etiquetas cantParticiones valPart = (aplanar datosTrain, datosTest, aplanar etiqTrain, etiqTest)
+  where 
+        cantElemPorPart = div (length datos) cantParticiones
+        datosRelevantes = take (cantElemPorPart * cantParticiones) datos
+        etiqRelevantes = take (cantElemPorPart * cantParticiones) etiquetas
+        
+        particionesDatos = particionesDeLargoN cantElemPorPart datosRelevantes
+        particionesEtiquetas = particionesDeLargoN cantElemPorPart etiqRelevantes
+        
+        valPartIndex = valPart-1
+        (datosTest, datosTrain) = extraerElementoN valPartIndex particionesDatos
+        (etiqTest, etiqTrain) = extraerElementoN valPartIndex particionesEtiquetas
+
+{- Versión anterior:
 separarDatos :: Datos -> [Etiqueta] -> Int -> Int -> (Datos, Datos, [Etiqueta], [Etiqueta])
 separarDatos datos etiquetas cantParticiones particion = 
   (datos_train, datos_particion, etiquetas_train, etiquetas_particion)
@@ -118,6 +150,21 @@ withoutSublist i len l = (take n l) ++ (drop m l)
 
 sublist i len list = take len $ drop n list   
   where n = i*len :: Int
+-}
 
+xs = [[1,1],[2,2],[3,3],[4,4],[5,5],[6,6],[7,7]]
+y = ["1","2","3","4","5","6","7"]
+(datosTrain, datosTest, etiqTrain, etiqTest) = separarDatos xs y 3 2
+
+
+-- Se podría re contra optimizar pasando las particiones correspondientes directamente, calculándolas en nFoldCrossValidation.
+-- No usaríamos "separarDatos", pero... yo que sé. Correr el run en mi PC tarda infinito, lo dejo corriendo a la noche a ver
+-- qué onda.
 nFoldCrossValidation :: Int -> Datos -> [Etiqueta] -> Float
-nFoldCrossValidation = undefined
+nFoldCrossValidation n datos etiquetas = mean $ map (nFoldCrossValidationParticionN n datos etiquetas) [0..(length datos - 1)]
+
+nFoldCrossValidationParticionN :: Int -> Datos -> [Etiqueta] -> Int -> Float
+nFoldCrossValidationParticionN cantParticiones datos etiquetas valPart = 
+    let (datosTrain, datosTest, etiqTrain, etiqTest) = separarDatos datos etiquetas cantParticiones valPart
+    in accuracy (map (knn 15 datosTrain etiqTrain distEuclidiana) datosTest) etiqTest
+
