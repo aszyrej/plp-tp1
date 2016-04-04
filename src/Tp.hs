@@ -113,58 +113,37 @@ extraerElementoN :: Int -> [a] -> (a, [a])
 extraerElementoN n xs = let ultimos = drop n xs
                         in (head ultimos, (take n xs) ++ (tail ultimos))
 
-separarDatos :: Datos -> [Etiqueta] -> Int -> Int -> (Datos, Datos, [Etiqueta], [Etiqueta])
-separarDatos datos etiquetas cantParticiones valPart = (aplanar datosTrain, datosTest, aplanar etiqTrain, etiqTest)
-  where 
+-- Auxiliar que, dados datos, etiquetas y cantPart deseadas, obtiene el particionado correspondientes, descartando sobrantes.
+obtenerParticionesCorrespondientes :: Datos -> [Etiqueta] -> Int -> ([Datos], [[Etiqueta]])
+obtenerParticionesCorrespondientes datos etiquetas cantParticiones = (particionesDatos, particionesEtiquetas)
+    where
         cantElemPorPart = div (length datos) cantParticiones
         datosRelevantes = take (cantElemPorPart * cantParticiones) datos
         etiqRelevantes = take (cantElemPorPart * cantParticiones) etiquetas
-        
         particionesDatos = particionesDeLargoN cantElemPorPart datosRelevantes
         particionesEtiquetas = particionesDeLargoN cantElemPorPart etiqRelevantes
-        
-        valPartIndex = valPart-1
+          
+-- Auxiliar que dadas las particiones y cuál quiero para validación, separa en (DatosTrain, DatosTest, EtiqTrain, EtiqTest).
+separarParticiones :: [Datos] -> [[Etiqueta]] -> Int -> (Datos, Datos, [Etiqueta], [Etiqueta])
+separarParticiones particionesDatos particionesEtiquetas valPartIndex =
+    (aplanar datosTrain, datosTest, aplanar etiqTrain, etiqTest)
+    where
         (datosTest, datosTrain) = extraerElementoN valPartIndex particionesDatos
         (etiqTest, etiqTrain) = extraerElementoN valPartIndex particionesEtiquetas
 
-{- Versión anterior:
 separarDatos :: Datos -> [Etiqueta] -> Int -> Int -> (Datos, Datos, [Etiqueta], [Etiqueta])
-separarDatos datos etiquetas cantParticiones particion = 
-  (datos_train, datos_particion, etiquetas_train, etiquetas_particion)
-  where 
-        cantElemPorPart = div (length datos) cantParticiones
-        p = particion-1
-        n = cantParticiones*cantElemPorPart
-        d = take n datos
-        e = take n etiquetas
-        
-        datos_train = withoutSublist p cantElemPorPart d
-        datos_particion = sublist p cantElemPorPart d
-        etiquetas_train = withoutSublist p cantElemPorPart e
-        etiquetas_particion = sublist p cantElemPorPart e
+separarDatos datos etiquetas cantParticiones valPart = 
+    let valPartIndex = valPart-1
+        (particionesDatos, particionesEtiquetas) = obtenerParticionesCorrespondientes datos etiquetas cantParticiones
+    in separarParticiones particionesDatos particionesEtiquetas valPartIndex
 
-
-withoutSublist i len l = (take n l) ++ (drop m l)
-  where n = i*len :: Int
-        m = (i+1)*len :: Int
-
-sublist i len list = take len $ drop n list   
-  where n = i*len :: Int
--}
-
-xs = [[1,1],[2,2],[3,3],[4,4],[5,5],[6,6],[7,7]]
-y = ["1","2","3","4","5","6","7"]
-(datosTrain, datosTest, etiqTrain, etiqTest) = separarDatos xs y 3 2
-
-
--- Se podría re contra optimizar pasando las particiones correspondientes directamente, calculándolas en nFoldCrossValidation.
--- No usaríamos "separarDatos", pero... yo que sé. Correr el run en mi PC tarda infinito, lo dejo corriendo a la noche a ver
--- qué onda.
 nFoldCrossValidation :: Int -> Datos -> [Etiqueta] -> Float
-nFoldCrossValidation n datos etiquetas = mean $ map (nFoldCrossValidationParticionN n datos etiquetas) [0..(length datos - 1)]
+nFoldCrossValidation n datos etiquetas =
+    let (particionesDatos, particionesEtiquetas) = obtenerParticionesCorrespondientes datos etiquetas n
+    in mean $ map (nFoldCrossValidationParticionK particionesDatos particionesEtiquetas) [0..(length particionesDatos - 1)]
 
-nFoldCrossValidationParticionN :: Int -> Datos -> [Etiqueta] -> Int -> Float
-nFoldCrossValidationParticionN cantParticiones datos etiquetas valPart = 
-    let (datosTrain, datosTest, etiqTrain, etiqTest) = separarDatos datos etiquetas cantParticiones valPart
+nFoldCrossValidationParticionK :: [Datos] -> [[Etiqueta]] -> Int -> Float
+nFoldCrossValidationParticionK particionesDatos particionesEtiquetas k = 
+    let (datosTrain, datosTest, etiqTrain, etiqTest) = separarParticiones particionesDatos particionesEtiquetas k
     in accuracy (map (knn 15 datosTrain etiqTrain distEuclidiana) datosTest) etiqTest
 
