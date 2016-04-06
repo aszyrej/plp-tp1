@@ -20,7 +20,10 @@ mean :: [Float] -> Float
 mean xs = realToFrac (sum xs) / genericLength xs
 
 split :: Eq a => a -> [a] -> [[a]]
-split e = foldr (\x rec -> if x == e then []:rec else (x:(head rec)):(tail rec)) [[]] 
+split e str = trimSplit $ foldr (\x rec -> if x == e then []:rec else (x:(head rec)):(tail rec)) [[]] str
+
+trimSplit :: Eq a => [[a]] -> [[a]]
+trimSplit = reverse . dropWhile null . reverse . dropWhile null
 
 -- Auxiliar.
 palabras txt = filter (/= []) (split ' ' txt)
@@ -36,6 +39,14 @@ longitudPromedioPalabrasSeparadas plbrs =   let longitudes = map genericLength p
 
 cuentas :: Eq a => [a] -> [(Int, a)]
 cuentas lst = map (\x -> (length $ filter (== x) lst, x)) (nub lst)
+
+{- Intento de optimización sacando en cada pasada los x que se contaron para no volver a recorrerlos.
+cuentas :: Eq a => [a] -> [(Int, a)]
+cuentas lst = fst $ foldr (\x res -> ((contarAparicionesDe x (snd res), x):(fst res), filter (/= x) (snd res))) ([], lst) (nub lst)
+
+contarAparicionesDe :: Eq a => a -> [a] -> Int
+contarAparicionesDe x = length . filter (== x) 
+-}
 
 -- Mismo que longPromedio, separamos el caso 0.0, si no, da NaN.
 repeticionesPromedio :: Extractor
@@ -53,6 +64,17 @@ frecuenciaTokens = map frec tokens
                                       in if tokenFrec == [] 
                                          then 0
                                          else fromIntegral (fst (head tokenFrec)) / fromIntegral (length txt)
+
+										 {- Intento de optimización contando las apariciones de t en vez de calculando las de todos los símbolos.
+frecuenciaTokens :: [Extractor]
+frecuenciaTokens =  let frec = (\t txt -> frecuenciaToken t txt)
+                    in  map frec tokens
+
+frecuenciaToken :: Char -> Texto -> Float
+frecuenciaToken t txt = let tokenFrec = fromIntegral $ contarAparicionesDe t txt
+                            totalLength = fromIntegral $ length txt
+                        in  if totalLength == 0 then 0.0 else tokenFrec / totalLength
+-}
 
 normalizarExtractor :: [Texto] -> Extractor -> Extractor
 normalizarExtractor txt e = (\t -> (e t) / maximum (map (abs . e) txt))
