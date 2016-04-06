@@ -24,11 +24,10 @@ allTests = test [
     ]
 
 testsE1Split = test [
---   split ',' ",PLP," ~?= ["PLP"], De la cátedra. No parece correcto.
-    split ',' ",PLP," ~?= ["", "PLP", ""],
+    split ',' ",PLP," ~?= ["PLP"],
     split ',' " ,PLP, " ~?= [" ","PLP"," "],
-    split ',' "" ~?= [""],
-    split ',' ",," ~?= ["","",""]
+    split ',' "" ~?= [],
+    split ',' ",," ~?= []
     ]
 
 testsE2LongPromedio = test [
