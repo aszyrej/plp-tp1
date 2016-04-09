@@ -45,7 +45,8 @@ frecuenciaTokens = map frec tokens
                                          else fromIntegral (fst (head tokenFrec)) / fromIntegral (length txt)
 
 normalizarExtractor :: [Texto] -> Extractor -> Extractor
-normalizarExtractor txt e = (\t -> (e t) / maximum (map (abs . e) txt))
+normalizarExtractor txt e = let eMax = maximum (map (abs . e) txt)
+                            in  if eMax == 0 then (const 0) else (\t -> (e t) / eMax)
 
 extraerFeatures :: [Extractor] -> [Texto] -> Datos
 extraerFeatures es ts = let esNorm = map (normalizarExtractor ts) es
