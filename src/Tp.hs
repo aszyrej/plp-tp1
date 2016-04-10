@@ -94,3 +94,17 @@ nFoldCrossValidation :: Int -> Datos -> [Etiqueta] -> Float
 nFoldCrossValidation particiones datos etiquetas = mean [partitionAccuracy reservada | reservada <- [1..particiones]]
   where partitionAccuracy reservada = let (datosEntrenamiento, datosValidacion, etiquetasEntrenamiento, etiquetasValidacion) = separarDatos datos etiquetas particiones reservada
                                       in  accuracy etiquetasValidacion [(knn 15 datosEntrenamiento etiquetasEntrenamiento distEuclidiana) dv | dv <- datosValidacion]
+
+-- Ej 13
+-- Intentamos probar los clasicadores para otro dominio. 
+-- En este caso, intentamos clasificar el genero de peliculas de cine por su titulo.
+-- Realizamos la prueba con un grupo de aproximadamente 500 peliculas que se diveden en
+-- diez generos distintos (Documentaries, Dramas, Comedies, Action & Adventure, Children,
+-- Sci-Fi & Fantasy, Satires, Horror Movies, Monster Movies, Thrillers).
+-- Con los mismo clasificadores del TP solo logramos un indice del 0.3148515
+--
+-- C:\runTitles
+-- "Titulos de peliculas: 507 instancias"
+-- "Generos: 10"
+-- 0.3148515
+-- "random value: 0.28205128205128205"
