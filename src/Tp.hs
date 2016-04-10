@@ -25,12 +25,10 @@ split e = filter (/= []) . foldr
                     (\x rec -> if x == e then []:rec else (x:(head rec)):(tail rec))
                     [[]]
 
--- Auxiliar para separar texto en palabras.
-palabras = split ' '
-
 -- Ej2 - Precond: texto no vacío
 longitudPromedioPalabras :: Extractor
-longitudPromedioPalabras txt = let longitudes = map genericLength (palabras txt)
+longitudPromedioPalabras txt = let palabras = split ' ' txt
+                                   longitudes = map genericLength palabras
                                in  mean longitudes
 
 -- Ej 3
@@ -39,7 +37,8 @@ cuentas lst = map (\x -> (length $ filter (== x) lst, x)) (nub lst)
 
 -- Ej 4 - Precond: texto no vacío
 repeticionesPromedio :: Extractor
-repeticionesPromedio txt = let frecuenciaPalabras = map (\x -> fromIntegral (fst x)) (cuentas (palabras txt))
+repeticionesPromedio txt = let palabras = split ' ' txt
+                               frecuenciaPalabras = map (\x -> fromIntegral (fst x)) (cuentas palabras)
                            in  mean frecuenciaPalabras
 
 -- Ej 5
@@ -77,50 +76,14 @@ knn :: Int -> Datos -> [Etiqueta] -> Medida -> Modelo
 knn vecinos datos etiquetas medida instancia = moda $ take vecinos $ sort $ zipWith (\x y -> (medida instancia x, y)) datos etiquetas
                                                where moda lst = snd $ head $ reverse $ sort $ cuentas $ map (\par -> snd par) lst
 
--- Precond: Lista de listas (xss) no vacía.
-agregarAlPrimero :: a->[[a]]->[[a]]
-agregarAlPrimero x xss = (x : (head xss)) : (tail xss)
-
-
--- Precond: n > 0 && (len xs) es mult de n.
-particionesDeLargoN :: Int->[a]->[[a]]
-particionesDeLargoN _ [] = []
-particionesDeLargoN n xs = fst $    foldr (\x res -> 
-                                    if (snd res) < n 
-                                    then (agregarAlPrimero x (fst res),(snd res)+1)
-                                    else ([x]:(fst res),1)) 
-                                    ([[]], 0)
-                                    xs
-
--- Auxiliar para obtener una tupla con el elemento N por un lado y el resto por el otro.
-extraerElementoN :: Int -> [a] -> (a, [a])
-extraerElementoN n xs = let ultimos = drop n xs
-                        in (head ultimos, (take n xs) ++ (tail ultimos))
-
--- Auxiliar que, dados datos, etiquetas y cantPart deseadas, obtiene el particionado correspondientes, descartando sobrantes.
-obtenerParticionesCorrespondientes :: Datos -> [Etiqueta] -> Int -> ([Datos], [[Etiqueta]])
-obtenerParticionesCorrespondientes datos etiquetas cantParticiones = (particionesDatos, particionesEtiquetas)
-    where
-        cantElemPorPart = div (length datos) cantParticiones
-        datosRelevantes = take (cantElemPorPart * cantParticiones) datos
-        etiqRelevantes = take (cantElemPorPart * cantParticiones) etiquetas
-        particionesDatos = particionesDeLargoN cantElemPorPart datosRelevantes
-        particionesEtiquetas = particionesDeLargoN cantElemPorPart etiqRelevantes
-          
--- Auxiliar que dadas las particiones y cuál quiero para validación, separa en (DatosTrain, DatosTest, EtiqTrain, EtiqTest).
-separarParticiones :: [Datos] -> [[Etiqueta]] -> Int -> (Datos, Datos, [Etiqueta], [Etiqueta])
-separarParticiones particionesDatos particionesEtiquetas valPartIndex =
-    (concat datosTrain, datosTest, concat etiqTrain, etiqTest)
-    where
-        (datosTest, datosTrain) = extraerElementoN valPartIndex particionesDatos
-        (etiqTest, etiqTrain) = extraerElementoN valPartIndex particionesEtiquetas
-
 -- Ej 10
 separarDatos :: Datos -> [Etiqueta] -> Int -> Int -> (Datos, Datos, [Etiqueta], [Etiqueta])
-separarDatos datos etiquetas cantParticiones valPart = 
-    let valPartIndex = valPart-1
-        (particionesDatos, particionesEtiquetas) = obtenerParticionesCorrespondientes datos etiquetas cantParticiones
-    in separarParticiones particionesDatos particionesEtiquetas valPartIndex
+separarDatos datos etiquetas particiones reservada = let partLen = div (length datos) particiones
+                                                         datosEntrenamiento = (take (partLen * (reservada - 1)) datos) ++ (take (partLen * (particiones - reservada)) $ (drop (partLen * reservada) datos))
+                                                         etiquetasEntrenamiento = (take (partLen * (reservada - 1)) etiquetas) ++ (take (partLen * (particiones - reservada)) $ (drop (partLen * reservada) etiquetas))
+                                                         datosValidacion = take partLen $ drop (partLen * (reservada - 1)) datos
+                                                         etiquetasValidacion = take partLen $ drop (partLen * (reservada - 1)) etiquetas
+                                                     in  (datosEntrenamiento, datosValidacion, etiquetasEntrenamiento, etiquetasValidacion)
 
 -- Ej 11
 accuracy :: [Etiqueta] -> [Etiqueta] -> Float
