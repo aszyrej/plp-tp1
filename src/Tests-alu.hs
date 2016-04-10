@@ -31,26 +31,25 @@ testsE1Split = test [
     ]
 
 testsE2LongPromedio = test [
-    longitudPromedioPalabras "" ~?= 0.0,
-    longitudPromedioPalabras " " ~?= 0.0,
+    longitudPromedioPalabras "aa bb cc dd ee" ~?= 2.0,
     longitudPromedioPalabras "cinco" ~?= 5.0,
     longitudPromedioPalabras "palabras v4r14s ??$ !" ~?= 4.5
     ]
     
 testsE3Cuentas = test [
     cuentas [""] ~?= [(1, "")],
+    cuentas [3,2,3,3,3,2,2] ~?= [(4, 3), (3, 2)],
     cuentas ["x","x","y","x","z"] ~?= [(3,"x"), (1,"y"), (1,"z")]
     ]
 
 testsE4RepPromedio = test [
-    repeticionesPromedio "" ~?= 0.0,
+    repeticionesPromedio "1" ~?= 1.0,
     repeticionesPromedio "1 2 3" ~?= 1.0,
     repeticionesPromedio "uno dos dos" ~?= 1.5,
     repeticionesPromedio "dos tres dos tres tres" ~?= 2.5
     ]
     
 testsE5FrecTokens = test [ -- (head frecuenciaTokens) es el extractor de "_"
-    (head frecuenciaTokens) "" ~?= 0.0,
     (head frecuenciaTokens) "no aparece" ~?= 0.0,
     (head frecuenciaTokens) "_" ~?= 1.0,
     (head frecuenciaTokens) "______" ~?= 1.0,
@@ -59,8 +58,9 @@ testsE5FrecTokens = test [ -- (head frecuenciaTokens) es el extractor de "_"
     ]
     
 testsE6NormExtractor = test [
-    normalizarExtractor ["", "2 2"] repeticionesPromedio "3 3 3" ~?= 1.5,
-    normalizarExtractor ["1", "3 3 3", "5 5 5 5 5"] repeticionesPromedio "2 2 3 3 3" ~?= 0.5
+    normalizarExtractor ["1", "2 2 2"] repeticionesPromedio "3 3 3 3 3 3" ~?= 2.0,
+    normalizarExtractor ["1", "3 3 3", "5 5 5 5 5"] repeticionesPromedio "2 2 3 3 3" ~?= 0.5,
+    normalizarExtractor ["abcd", "abs"] longitudPromedioPalabras "uno dos tre" ~?= 0.75
     ]
     
 testsE7ExtraerFeatures = test [
