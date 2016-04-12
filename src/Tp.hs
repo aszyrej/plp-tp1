@@ -89,7 +89,12 @@ separarDatos datos etiquetas particiones reservada = let partLen = div (length d
 accuracy :: [Etiqueta] -> [Etiqueta] -> Float
 accuracy etiquetas predicciones = mean $ zipWith (\e p -> if e == p then 1 else 0) etiquetas predicciones 
 
--- Ej 12                                                     
+-- Ej 12                                      
+-- Tenemos que promediar la precisión obtenida a partir de cada particionado posible 
+-- (tomando una partición para validación y el resto para entrenamiento).
+-- Para cada particionado, usamos knn (con k=15, enunciado) entrenando con los 
+-- datosEntrenamiento/etiquetasEntrenamiento y procesando los datosValidación,
+-- comparando luego con las etiquetasValidacion correspondientes.
 nFoldCrossValidation :: Int -> Datos -> [Etiqueta] -> Float
 nFoldCrossValidation particiones datos etiquetas = mean [partitionAccuracy reservada | reservada <- [1..particiones]]
   where partitionAccuracy reservada = let (datosEntrenamiento, datosValidacion, etiquetasEntrenamiento, etiquetasValidacion) = separarDatos datos etiquetas particiones reservada
